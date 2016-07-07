@@ -1,4 +1,10 @@
 {
+  "nordic": {
+    "softdevice": "S110"
+  },
+  "mbed": {
+    "max-filehandles": 4
+  },
   "eddystone": {
     "default-device-name": "\"ICED DEV\"",
     "default-url": "\"https://www.iceddev.com/\"",
