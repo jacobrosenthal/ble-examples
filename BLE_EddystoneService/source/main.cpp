@@ -22,15 +22,9 @@
 
 EddystoneService *eddyServicePtr;
 
-/* Duration after power-on that config service is available. */
-static const int CONFIG_ADVERTISEMENT_TIMEOUT_SECONDS = 30;
-
 /* Default UID frame data */
 static const UIDNamespaceID_t uidNamespaceID = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99};
 static const UIDInstanceID_t  uidInstanceID  = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-
-/* Default version in TLM frame */
-static const uint8_t tlmVersion = 0x00;
 
 /* Values for ADV packets related to firmware levels, calibrated based on measured values at 1m */
 static const PowerLevels_t defaultAdvPowerLevels = {-47, -33, -21, -13};
@@ -48,23 +42,6 @@ static void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *cbPa
     BLE::Instance().gap().startAdvertising();
 }
 
-/**
- * Callback triggered some time after application started to switch to beacon mode.
- */
-static void timeout(void)
-{
-    Gap::GapState_t state;
-    state = BLE::Instance().gap().getState();
-    if (!state.connected) { /* don't switch if we're in a connected state. */
-        eddyServicePtr->startBeaconService();
-        EddystoneService::EddystoneParams_t params;
-        eddyServicePtr->getEddystoneParams(params);
-        saveEddystoneServiceConfigParams(&params);
-    } else {
-        minar::Scheduler::postCallback(timeout).delay(minar::milliseconds(CONFIG_ADVERTISEMENT_TIMEOUT_SECONDS * 1000));
-    }
-}
-
 static void blinky(void)
 {
     led = !led;
@@ -80,12 +57,7 @@ static void initializeEddystoneToDefaults(BLE &ble)
 {
     /* Set everything to defaults */
     eddyServicePtr = new EddystoneService(ble, defaultAdvPowerLevels, radioPowerLevels);
-
-    /* Set default URL, UID and TLM frame data if not initialized through the config service */
-    const char* url = YOTTA_CFG_EDDYSTONE_DEFAULT_URL;
-    eddyServicePtr->setURLData(url);
     eddyServicePtr->setUIDData(uidNamespaceID, uidInstanceID);
-    eddyServicePtr->setTLMData(tlmVersion);
 }
 
 static void bleInitComplete(BLE::InitializationCompleteCallbackContext* initContext)
@@ -107,10 +79,7 @@ static void bleInitComplete(BLE::InitializationCompleteCallbackContext* initCont
         initializeEddystoneToDefaults(ble);
     }
 
-    /* Start Eddystone in config mode */
-    eddyServicePtr->startConfigService();
-
-    minar::Scheduler::postCallback(timeout).delay(minar::milliseconds(CONFIG_ADVERTISEMENT_TIMEOUT_SECONDS * 1000));
+    eddyServicePtr->startBeaconService();
 }
 
 void app_start(int, char *[])
