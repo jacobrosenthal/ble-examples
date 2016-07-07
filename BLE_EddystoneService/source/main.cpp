@@ -17,10 +17,12 @@
 #include "mbed-drivers/mbed.h"
 #include "ble/BLE.h"
 #include "EddystoneService.h"
+#include "LEDService.h"
 
 #include "PersistentStorageHelper/ConfigParamsPersistence.h"
 
 EddystoneService *eddyServicePtr;
+LEDService *ledServicePtr;
 
 /* Default UID frame data */
 static const UIDNamespaceID_t uidNamespaceID = {0x3b, 0xe4, 0x01, 0xaa, 0x7c, 0x68, 0x9e, 0x99, 0x90, 0x85};
@@ -31,7 +33,7 @@ static const PowerLevels_t defaultAdvPowerLevels = {-47, -33, -21, -13};
 /* Values for radio power levels, provided by manufacturer. */
 static const PowerLevels_t radioPowerLevels      = {-30, -16, -4, 4};
 
-DigitalOut led(LED1, 1);
+DigitalOut actuatedLED(LED1, 1);
 
 /**
  * Callback triggered upon a disconnection event.
@@ -42,9 +44,10 @@ static void disconnectionCallback(const Gap::DisconnectionCallbackParams_t *cbPa
     BLE::Instance().gap().startAdvertising();
 }
 
-static void blinky(void)
-{
-    led = !led;
+void onDataWrittenCallback(const GattWriteCallbackParams *params) {
+    if ((params->handle == ledServicePtr->getValueHandle()) && (params->len == 1)) {
+        actuatedLED = !*(params->data);
+    }
 }
 
 static void onBleInitError(BLE::InitializationCompleteCallbackContext* initContext)
@@ -70,6 +73,11 @@ static void bleInitComplete(BLE::InitializationCompleteCallbackContext* initCont
         return;
     }
 
+    ble.gattServer().onDataWritten(onDataWrittenCallback);
+
+    bool initialValueForLEDCharacteristic = false;
+    ledServicePtr = new LEDService(ble, initialValueForLEDCharacteristic);
+
     ble.gap().onDisconnection(disconnectionCallback);
 
     EddystoneService::EddystoneParams_t params;
@@ -88,8 +96,6 @@ void app_start(int, char *[])
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
     setbuf(stdin, NULL);
-
-    minar::Scheduler::postCallback(blinky).period(minar::milliseconds(500));
 
     BLE &ble = BLE::Instance();
     ble.init(bleInitComplete);

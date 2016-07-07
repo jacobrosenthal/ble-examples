@@ -366,7 +366,7 @@ void EddystoneService::setupBeaconService(void)
 
     /* Configure advertisements */
     ble.gap().setTxPower(radioPowerLevels[txPowerMode]);
-    ble.gap().setAdvertisingType(GapAdvertisingParams::ADV_NON_CONNECTABLE_UNDIRECTED);
+    ble.gap().setAdvertisingType(GapAdvertisingParams::ADV_CONNECTABLE_UNDIRECTED);
     ble.gap().setAdvertisingInterval(ble.gap().getMaxAdvertisingInterval());
 
     /* Make sure the queue is currently empty */
