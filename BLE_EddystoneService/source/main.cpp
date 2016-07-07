@@ -23,8 +23,8 @@
 EddystoneService *eddyServicePtr;
 
 /* Default UID frame data */
-static const UIDNamespaceID_t uidNamespaceID = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99};
-static const UIDInstanceID_t  uidInstanceID  = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+static const UIDNamespaceID_t uidNamespaceID = {0x3b, 0xe4, 0x01, 0xaa, 0x7c, 0x68, 0x9e, 0x99, 0x90, 0x85};
+static const UIDInstanceID_t  uidInstanceID  = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 /* Values for ADV packets related to firmware levels, calibrated based on measured values at 1m */
 static const PowerLevels_t defaultAdvPowerLevels = {-47, -33, -21, -13};
